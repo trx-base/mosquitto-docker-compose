@@ -1,8 +1,8 @@
-version: "3.7"
+version: "3.8"
 
 networks:
   default:
-    name: mosquitto-default
+    name: traefik-default
 
 services:
   mosquitto:
@@ -14,3 +14,17 @@ services:
     - 9001:9001
     volumes:
       - ./config:/mosquitto/config/:rw
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.$COMPOSE_PROJECT_NAME.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.$COMPOSE_PROJECT_NAME.entrypoints=https"
+      - "traefik.http.routers.$COMPOSE_PROJECT_NAME.tls.certresolver=letsencrypt"
+      - "traefik.http.services.$COMPOSE_PROJECT_NAME.loadbalancer.server.port=9001"
+  whoami:
+    image: "traefik/whoami"
+    container_name: $COMPOSE_PROJECT_NAME-whoami
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.whoami.entrypoints=http"
